@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,6 +93,15 @@ const Login = () => {
               {isSubmitting ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 mb-4">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                Register as Staff
+              </Link>
+            </p>
+          </div>
 
           <div className="mt-6 text-sm text-gray-600">
             <p className="font-semibold mb-2">Demo Credentials:</p>
