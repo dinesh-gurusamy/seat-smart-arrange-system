@@ -16,7 +16,7 @@ import {
 import { useState } from 'react';
 
 const AdminLayout = () => {
-  const { user, logout } = useAuth();
+  const { profile, logout } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -111,7 +111,7 @@ const AdminLayout = () => {
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
               <div className="flex items-center gap-x-4">
                 <span className="text-sm font-medium text-gray-700">
-                  Welcome, {user?.name}
+                  Welcome, {profile?.full_name || profile?.email}
                 </span>
                 <Button variant="outline" size="sm" onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
