@@ -1,17 +1,21 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
-interface User {
+interface Profile {
   id: string;
-  name: string;
   email: string;
+  full_name: string | null;
   role: 'admin' | 'faculty' | 'student';
 }
 
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -19,60 +23,77 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth token
-    const token = localStorage.getItem('token');
-    if (token) {
-      // In real app, verify token with backend
-      setUser({
-        id: '1',
-        name: 'Admin User',
-        email: 'admin@college.edu',
-        role: 'admin'
-      });
-    }
-    setIsLoading(false);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
+  const fetchProfile = async (userId: string) => {
     try {
-      // Mock login - replace with actual API call
-      if (email === 'admin@college.edu' && password === 'admin') {
-        const mockUser = {
-          id: '1',
-          name: 'Admin User',
-          email: 'admin@college.edu',
-          role: 'admin' as const
-        };
-        setUser(mockUser);
-        localStorage.setItem('token', 'mock-token');
-      } else if (email === 'faculty@college.edu' && password === 'faculty') {
-        const mockUser = {
-          id: '2',
-          name: 'Faculty User',
-          email: 'faculty@college.edu',
-          role: 'faculty' as const
-        };
-        setUser(mockUser);
-        localStorage.setItem('token', 'mock-token');
-      } else {
-        throw new Error('Invalid credentials');
-      }
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, profile, session, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

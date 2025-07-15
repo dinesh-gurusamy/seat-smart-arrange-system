@@ -1,292 +1,191 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
-import { Search, MapPin, User, Hash, Building, Calendar, Download, ArrowLeft } from 'lucide-react';
+import { Search, MapPin, Clock, Calendar, Building, User } from 'lucide-react';
+import { studentsApi } from '@/services/api';
 
 const StudentSeatFinder = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<any>(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const [rollNumber, setRollNumber] = useState('');
+  const [seatInfo, setSeatInfo] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Mock search function - replace with actual API call
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setError('Please enter your roll number or name');
+    if (!rollNumber.trim()) {
+      setError('Please enter a roll number');
       return;
     }
 
-    setIsSearching(true);
+    setIsLoading(true);
     setError('');
+    setSeatInfo(null);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock result - replace with actual API response
-      if (searchQuery.toLowerCase().includes('john') || searchQuery === '21CS001') {
-        setSearchResult({
-          student: {
-            name: 'John Doe',
-            rollNumber: '21CS001',
-            department: 'Computer Science',
-            semester: '6th'
-          },
-          seat: {
-            hallNumber: 'A-101',
-            seatNumber: 'B-15',
-            row: 3,
-            column: 5
-          },
-          exam: {
-            name: 'Data Structures Final',
-            date: '2024-01-15',
-            time: '9:00 AM - 12:00 PM'
-          }
-        });
+      const data = await studentsApi.findBySeat(rollNumber);
+      if (data && data.length > 0) {
+        setSeatInfo(data[0]); // Get the first/latest seating assignment
       } else {
-        setError('Student not found. Please check your roll number or name.');
-        setSearchResult(null);
+        setError('No seating assignment found for this roll number');
       }
+    } catch (err) {
+      console.error('Error searching seat:', err);
+      setError('Failed to search for seat information');
     } finally {
-      setIsSearching(false);
+      setIsLoading(false);
     }
   };
 
-  const handleDownloadAdmitCard = () => {
-    // Mock download function
-    console.log('Downloading admit card...');
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <MapPin className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Find Your Seat</h1>
-            </div>
-            <Link to="/">
-              <Button variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Your Seat</h1>
+          <p className="text-gray-600 text-lg">
+            Enter your roll number to find your examination seat
+          </p>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Search Section */}
+        {/* Search Card */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Search className="mr-2 h-5 w-5" />
-              Student Seat Lookup
+              Seat Search
             </CardTitle>
             <CardDescription>
-              Enter your roll number or full name to find your exam seat
+              Enter your roll number to find your assigned seat for upcoming exams
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4 mb-4">
+            <div className="flex gap-4">
               <div className="flex-1">
+                <Label htmlFor="rollNumber">Roll Number</Label>
                 <Input
-                  placeholder="Enter roll number (e.g., 21CS001) or full name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="text-lg py-6"
+                  id="rollNumber"
+                  placeholder="Enter your roll number (e.g., 21CS001)"
+                  value={rollNumber}
+                  onChange={(e) => setRollNumber(e.target.value.toUpperCase())}
+                  onKeyPress={handleKeyPress}
+                  className="mt-1"
                 />
               </div>
-              <Button 
-                onClick={handleSearch}
-                disabled={isSearching}
-                size="lg"
-                className="px-8"
-              >
-                {isSearching ? 'Searching...' : 'Search'}
-              </Button>
+              <div className="flex items-end">
+                <Button onClick={handleSearch} disabled={isLoading}>
+                  {isLoading ? 'Searching...' : 'Search'}
+                </Button>
+              </div>
             </div>
 
             {error && (
-              <Alert className="mt-4">
+              <Alert className="mt-4" variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-2">Search Tips:</p>
-              <ul className="text-xs text-blue-700 space-y-1">
-                <li>• Use your complete roll number (e.g., 21CS001, 20ME045)</li>
-                <li>• Enter your full name as registered (First Name Last Name)</li>
-                <li>• Search is case-insensitive</li>
-              </ul>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Search Results */}
-        {searchResult && (
-          <div className="space-y-6">
-            {/* Student Info Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-green-700">
-                  <User className="mr-2 h-5 w-5" />
-                  Student Found!
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold text-lg mb-3">Student Details</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Name:</span>
-                        <span className="font-medium">{searchResult.student.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Roll Number:</span>
-                        <span className="font-medium">{searchResult.student.rollNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Department:</span>
-                        <Badge variant="secondary">{searchResult.student.department}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Semester:</span>
-                        <span className="font-medium">{searchResult.student.semester}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-lg mb-3">Exam Details</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Subject:</span>
-                        <span className="font-medium">{searchResult.exam.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Date:</span>
-                        <span className="font-medium">{searchResult.exam.date}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Time:</span>
-                        <span className="font-medium">{searchResult.exam.time}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Seat Assignment Card */}
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="flex items-center text-green-700">
-                  <Building className="mr-2 h-5 w-5" />
-                  Your Seat Assignment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-6 mb-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      {searchResult.seat.hallNumber}
-                    </div>
-                    <div className="text-sm text-gray-600">Exam Hall</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      {searchResult.seat.seatNumber}
-                    </div>
-                    <div className="text-sm text-gray-600">Seat Number</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-green-600 mb-2">
-                      Row {searchResult.seat.row}, Col {searchResult.seat.column}
-                    </div>
-                    <div className="text-sm text-gray-600">Position</div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button onClick={handleDownloadAdmitCard} className="flex-1">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Admit Card
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    View Hall Map
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Important Instructions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Important Instructions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Arrive at the exam hall at least 30 minutes before the scheduled time
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Bring your ID card and admit card for verification
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Mobile phones and electronic devices are strictly prohibited
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Follow all COVID-19 safety protocols if applicable
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Demo Info */}
-        {!searchResult && !error && (
+        {/* Seat Information */}
+        {seatInfo && (
           <Card>
             <CardHeader>
-              <CardTitle>Demo Information</CardTitle>
+              <CardTitle className="flex items-center text-green-600">
+                <MapPin className="mr-2 h-5 w-5" />
+                Seat Assignment Found
+              </CardTitle>
               <CardDescription>
-                Try searching with these sample credentials
+                Your seat details for the examination
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="font-medium mb-2">Search by Roll Number:</p>
-                  <p className="text-sm text-gray-600">21CS001</p>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Student Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <User className="mr-3 h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-semibold">{seatInfo.student?.name}</p>
+                      <p className="text-sm text-gray-600">Roll: {seatInfo.student?.roll_number}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <Building className="mr-3 h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-semibold">{seatInfo.room?.name}</p>
+                      <p className="text-sm text-gray-600">Examination Hall</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <MapPin className="mr-3 h-5 w-5 text-purple-600" />
+                    <div>
+                      <p className="font-semibold">
+                        Seat {seatInfo.seat_number} (Row {seatInfo.seat_row}, Col {seatInfo.seat_column})
+                      </p>
+                      <p className="text-sm text-gray-600">Your assigned seat</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="font-medium mb-2">Search by Name:</p>
-                  <p className="text-sm text-gray-600">John Doe</p>
+
+                {/* Exam Information */}
+                <div className="space-y-4">
+                  {seatInfo.exam && (
+                    <>
+                      <div className="flex items-center">
+                        <Calendar className="mr-3 h-5 w-5 text-orange-600" />
+                        <div>
+                          <p className="font-semibold">{seatInfo.exam.name}</p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(seatInfo.exam.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                        <Clock className="mr-3 h-5 w-5 text-red-600" />
+                        <div>
+                          <p className="font-semibold">
+                            {seatInfo.exam.start_time} - {seatInfo.exam.end_time}
+                          </p>
+                          <p className="text-sm text-gray-600">Exam Duration</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="pt-4">
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      Seat Confirmed
+                    </Badge>
+                  </div>
                 </div>
+              </div>
+
+              {/* Important Instructions */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">Important Instructions:</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Arrive at the examination hall 15 minutes before the start time</li>
+                  <li>• Bring your student ID card and admit card</li>
+                  <li>• Only take the assigned seat - do not change seats</li>
+                  <li>• Mobile phones and electronic devices are not allowed</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
         )}
-      </main>
+      </div>
     </div>
   );
 };

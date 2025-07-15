@@ -11,6 +11,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UploadStudents from "./pages/admin/UploadStudents";
 import ManageRooms from "./pages/admin/ManageRooms";
+import ManageExams from "./pages/admin/ManageExams";
 import SeatingGenerator from "./pages/admin/SeatingGenerator";
 import FacultyLayout from "./layouts/FacultyLayout";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
@@ -41,6 +42,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="upload-students" element={<UploadStudents />} />
               <Route path="manage-rooms" element={<ManageRooms />} />
+              <Route path="manage-exams" element={<ManageExams />} />
               <Route path="generate-seating" element={<SeatingGenerator />} />
             </Route>
             

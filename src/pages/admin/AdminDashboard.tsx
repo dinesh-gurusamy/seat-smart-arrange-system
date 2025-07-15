@@ -1,29 +1,59 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Users, Building, FileText, AlertCircle, TrendingUp, Calendar } from 'lucide-react';
+import { studentsApi, roomsApi, examsApi } from '@/services/api';
 
 const AdminDashboard = () => {
-  // Mock data - replace with real API calls
-  const stats = {
-    totalStudents: 1247,
-    totalRooms: 12,
-    activeExams: 3,
-    upcomingExams: 5
-  };
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalRooms: 0,
+    activeExams: 0,
+    upcomingExams: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const recentActivity = [
-    { action: 'Seating plan generated', exam: 'Mathematics Final', time: '2 hours ago' },
-    { action: 'Students uploaded', count: '156 students', time: '5 hours ago' },
-    { action: 'Room updated', room: 'Hall A-101', time: '1 day ago' },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [students, rooms, exams] = await Promise.all([
+          studentsApi.getAll(),
+          roomsApi.getAll(),
+          examsApi.getAll()
+        ]);
+
+        const today = new Date().toISOString().split('T')[0];
+        const activeExams = exams.filter(exam => exam.date === today).length;
+        const upcomingExams = exams.filter(exam => exam.date > today).length;
+
+        setStats({
+          totalStudents: students.length,
+          totalRooms: rooms.filter(room => room.is_active).length,
+          activeExams,
+          upcomingExams
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-96">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>;
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
         <p className="text-gray-600 mt-2">
           Overview of your seating management system
         </p>
@@ -39,20 +69,20 @@ const AdminDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalStudents.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +12% from last semester
+              Registered in system
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Rooms</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalRooms}</div>
             <p className="text-xs text-muted-foreground">
-              Capacity: 300 students
+              Available for exams
             </p>
           </CardContent>
         </Card>
@@ -78,7 +108,7 @@ const AdminDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{stats.upcomingExams}</div>
             <p className="text-xs text-muted-foreground">
-              Next 7 days
+              Scheduled
             </p>
           </CardContent>
         </Card>
@@ -112,38 +142,12 @@ const AdminDashboard = () => {
                 Generate Seating
               </Button>
             </Link>
-            <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
-              <AlertCircle className="h-6 w-6 mb-2" />
-              View Reports
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>
-            Latest actions performed in the system
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between py-2">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-gray-500">
-                      {activity.exam || activity.count || activity.room}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs text-gray-500">{activity.time}</span>
-              </div>
-            ))}
+            <Link to="/admin/manage-exams">
+              <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
+                <Calendar className="h-6 w-6 mb-2" />
+                Manage Exams
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

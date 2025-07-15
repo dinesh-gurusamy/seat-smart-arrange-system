@@ -14,16 +14,275 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      courses: {
+        Row: {
+          code: string
+          created_at: string | null
+          department_id: string | null
+          id: string
+          name: string
+          semester: number
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          name: string
+          semester: number
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          name?: string
+          semester?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      exams: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          date: string
+          end_time: string
+          id: string
+          name: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          date: string
+          end_time: string
+          id?: string
+          name: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          end_time?: string
+          id?: string
+          name?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          capacity: number
+          columns: number
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          rows: number
+        }
+        Insert: {
+          capacity?: number
+          columns?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rows?: number
+        }
+        Update: {
+          capacity?: number
+          columns?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rows?: number
+        }
+        Relationships: []
+      }
+      seating_plans: {
+        Row: {
+          created_at: string | null
+          exam_id: string | null
+          id: string
+          room_id: string | null
+          seat_column: number
+          seat_number: number
+          seat_row: number
+          student_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exam_id?: string | null
+          id?: string
+          room_id?: string | null
+          seat_column: number
+          seat_number: number
+          seat_row: number
+          student_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exam_id?: string | null
+          id?: string
+          room_id?: string | null
+          seat_column?: number
+          seat_number?: number
+          seat_row?: number
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seating_plans_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seating_plans_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seating_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          department_id: string | null
+          email: string | null
+          id: string
+          name: string
+          roll_number: string
+          semester: number | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          roll_number: string
+          semester?: number | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          roll_number?: string
+          semester?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "faculty" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +409,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "faculty", "student"],
+    },
   },
 } as const
