@@ -7,12 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Users, Upload, Download } from 'lucide-react';
-import { studentsService } from '@/services/studentsService';
+import { Plus, Search, Edit, Trash2, Users, Upload } from 'lucide-react';
+import { studentsService, type Student } from '@/services/studentsService';
 import { useToast } from '@/components/ui/use-toast';
 
 const StudentManager = () => {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -23,7 +23,7 @@ const StudentManager = () => {
     name: '',
     roll_number: '',
     email: '',
-    department: '',
+    department_id: '',
     semester: ''
   });
 
@@ -56,8 +56,16 @@ const StudentManager = () => {
 
   const handleAddStudent = async () => {
     try {
-      await studentsService.create(newStudent);
-      setNewStudent({ name: '', roll_number: '', email: '', department: '', semester: '' });
+      const studentData = {
+        name: newStudent.name,
+        roll_number: newStudent.roll_number,
+        email: newStudent.email,
+        department_id: newStudent.department_id || undefined,
+        semester: newStudent.semester ? parseInt(newStudent.semester) : undefined
+      };
+
+      await studentsService.create(studentData);
+      setNewStudent({ name: '', roll_number: '', email: '', department_id: '', semester: '' });
       setIsAddDialogOpen(false);
       await fetchStudents();
       toast({
@@ -92,10 +100,12 @@ const StudentManager = () => {
     }
   };
 
-  const filteredStudents = students.filter((student: any) => {
+  const filteredStudents = students.filter((student) => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.roll_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' || student.department === selectedDepartment;
+    const matchesDepartment = selectedDepartment === 'all' || 
+                             student.department?.code === selectedDepartment ||
+                             student.department_id === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
 
@@ -169,7 +179,7 @@ const StudentManager = () => {
                 </div>
                 <div>
                   <Label htmlFor="department">Department</Label>
-                  <Select value={newStudent.department} onValueChange={(value) => setNewStudent({ ...newStudent, department: value })}>
+                  <Select value={newStudent.department_id} onValueChange={(value) => setNewStudent({ ...newStudent, department_id: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
@@ -277,7 +287,7 @@ const StudentManager = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {students.filter((s: any) => s.semester === '6').length}
+              {students.filter((s) => s.semester === 6).length}
             </div>
           </CardContent>
         </Card>
@@ -293,7 +303,7 @@ const StudentManager = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredStudents.map((student: any) => (
+            {filteredStudents.map((student) => (
               <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -304,14 +314,16 @@ const StudentManager = () => {
                   <div>
                     <h4 className="font-semibold">{student.name}</h4>
                     <p className="text-sm text-gray-600">{student.roll_number}</p>
-                    <p className="text-sm text-gray-600">{student.email}</p>
+                    {student.email && <p className="text-sm text-gray-600">{student.email}</p>}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline">
-                    {departments.find(d => d.id === student.department)?.name || student.department}
+                    {student.department?.name || 'No Department'}
                   </Badge>
-                  <Badge variant="secondary">Sem {student.semester}</Badge>
+                  {student.semester && (
+                    <Badge variant="secondary">Sem {student.semester}</Badge>
+                  )}
                   <Button variant="outline" size="sm">
                     <Edit className="h-4 w-4" />
                   </Button>
