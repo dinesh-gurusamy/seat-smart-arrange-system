@@ -6,26 +6,26 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import Home from "./pages/Home";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import AdminLayout from "./layouts/AdminLayout";
+
+// Pages
+import HomePage from "./pages/HomePage";
+import AuthPage from "./pages/AuthPage";
+import DashboardLayout from "./layouts/DashboardLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import UploadStudents from "./pages/admin/UploadStudents";
-import ManageRooms from "./pages/admin/ManageRooms";
-import ManageExams from "./pages/admin/ManageExams";
-import SeatingGenerator from "./pages/admin/SeatingGenerator";
-import FacultyLayout from "./layouts/FacultyLayout";
+import StudentManager from "./pages/admin/StudentManager";
+import RoomManager from "./pages/admin/RoomManager";
+import ExamManager from "./pages/admin/ExamManager";
+import SeatingManager from "./pages/admin/SeatingManager";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
-import StudentSeatFinder from "./pages/student/StudentSeatFinder";
+import StudentSearch from "./pages/StudentSearch";
 import ProtectedRoute from "./components/ProtectedRoute";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
@@ -35,40 +35,39 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/student/search" element={<StudentSeatFinder />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin" element={
-                <ProtectedRoute role="admin">
-                  <AdminLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<AdminDashboard />} />
-                <Route path="upload-students" element={<UploadStudents />} />
-                <Route path="manage-rooms" element={<ManageRooms />} />
-                <Route path="manage-exams" element={<ManageExams />} />
-                <Route path="generate-seating" element={<SeatingGenerator />} />
-              </Route>
-              
-              {/* Faculty Routes */}
-              <Route path="/faculty" element={
-                <ProtectedRoute role="faculty">
-                  <FacultyLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<FacultyDashboard />} />
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/search" element={<StudentSearch />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin" element={
+                  <ProtectedRoute role="admin">
+                    <DashboardLayout userType="admin" />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="students" element={<StudentManager />} />
+                  <Route path="rooms" element={<RoomManager />} />
+                  <Route path="exams" element={<ExamManager />} />
+                  <Route path="seating" element={<SeatingManager />} />
+                </Route>
+                
+                {/* Faculty Routes */}
+                <Route path="/faculty" element={
+                  <ProtectedRoute role="faculty">
+                    <DashboardLayout userType="faculty" />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<FacultyDashboard />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </div>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
