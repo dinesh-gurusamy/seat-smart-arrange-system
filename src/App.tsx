@@ -13,9 +13,9 @@ import AuthPage from "./pages/AuthPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import StudentManager from "./pages/admin/StudentManager";
-import RoomManager from "./pages/admin/RoomManager";
-import ExamManager from "./pages/admin/ExamManager";
-import SeatingManager from "./pages/admin/SeatingManager";
+import ManageRooms from "./pages/admin/ManageRooms";
+import ManageExams from "./pages/admin/ManageExams";
+import SeatingGenerator from "./pages/admin/SeatingGenerator";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import StudentSearch from "./pages/StudentSearch";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -52,9 +52,9 @@ const App: React.FC = () => {
                 }>
                   <Route index element={<AdminDashboard />} />
                   <Route path="students" element={<StudentManager />} />
-                  <Route path="rooms" element={<RoomManager />} />
-                  <Route path="exams" element={<ExamManager />} />
-                  <Route path="seating" element={<SeatingManager />} />
+                  <Route path="rooms" element={<ManageRooms />} />
+                  <Route path="exams" element={<ManageExams />} />
+                  <Route path="seating" element={<SeatingGenerator />} />
                 </Route>
                 
                 {/* Faculty Routes */}
