@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Edit, Trash2, Users, Upload } from 'lucide-react';
 import { studentsService, type Student } from '@/services/studentsService';
+import { departmentsApi } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 
 const StudentManager = () => {
@@ -27,16 +28,21 @@ const StudentManager = () => {
     semester: ''
   });
 
-  const departments = [
-    { id: 'cs', name: 'Computer Science' },
-    { id: 'ec', name: 'Electronics' },
-    { id: 'me', name: 'Mechanical' },
-    { id: 'ce', name: 'Civil' }
-  ];
+  const [departments, setDepartments] = useState<any[]>([]);
 
   useEffect(() => {
     fetchStudents();
+    fetchDepartments();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const data = await departmentsApi.getAll();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
 
   const fetchStudents = async () => {
     try {

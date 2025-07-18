@@ -20,7 +20,7 @@ import {
   AlertCircle,
   Home
 } from 'lucide-react';
-import { studentsApi } from '@/services/api';
+import { studentsService } from '@/services/studentsService';
 
 const StudentSearch = () => {
   const [rollNumber, setRollNumber] = useState('');
@@ -39,7 +39,7 @@ const StudentSearch = () => {
     setSeatInfo(null);
 
     try {
-      const data = await studentsApi.findBySeat(rollNumber);
+      const data = await studentsService.findBySeat(rollNumber);
       if (data && data.length > 0) {
         setSeatInfo(data[0]);
       } else {

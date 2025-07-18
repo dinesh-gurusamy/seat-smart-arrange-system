@@ -14,7 +14,9 @@ import {
   Activity,
   Clock
 } from 'lucide-react';
-import { studentsApi, roomsApi, examsApi } from '@/services/api';
+import { studentsService } from '@/services/studentsService';
+import { roomsService } from '@/services/roomsService';
+import { examsService } from '@/services/examsService';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -29,9 +31,9 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       try {
         const [students, rooms, exams] = await Promise.all([
-          studentsApi.getAll(),
-          roomsApi.getAll(),
-          examsApi.getAll()
+          studentsService.getAll(),
+          roomsService.getAll(),
+          examsService.getAll()
         ]);
 
         const today = new Date().toISOString().split('T')[0];

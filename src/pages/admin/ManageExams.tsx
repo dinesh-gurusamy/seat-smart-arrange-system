@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Calendar, Clock, Users } from 'lucide-react';
-import { examsApi } from '@/services/api';
+import { examsService } from '@/services/examsService';
 import { useToast } from '@/components/ui/use-toast';
 
 const ManageExams = () => {
@@ -27,7 +27,7 @@ const ManageExams = () => {
 
   const fetchExams = async () => {
     try {
-      const data = await examsApi.getAll();
+      const data = await examsService.getAll();
       setExams(data);
     } catch (error) {
       console.error('Error fetching exams:', error);
@@ -43,7 +43,7 @@ const ManageExams = () => {
 
   const handleAddExam = async () => {
     try {
-      await examsApi.create(newExam);
+      await examsService.create(newExam);
       setNewExam({ name: '', date: '', start_time: '', end_time: '' });
       setIsAddDialogOpen(false);
       await fetchExams();
